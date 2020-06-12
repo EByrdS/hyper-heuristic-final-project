@@ -10,6 +10,7 @@ public class Item {
 
     private final int id, weight;
     private final double profit;
+    private double score;
 
     /**
      * Creates a new instance of <code>Item</code>.
@@ -22,6 +23,7 @@ public class Item {
         this.id = id;
         this.profit = profit;
         this.weight = weight;
+        this.score = 0;
     }
 
     /**
@@ -58,6 +60,24 @@ public class Item {
      */
     public double getProfitPerWeightUnit() {
         return profit / weight;
+    }
+    
+    /**
+     * Return the score of the item
+     * 
+     * @return the score of the item.
+     */
+    public double getScore() {
+        return score;
+    }
+    
+    /**
+     * Changes the score of the item
+     * 
+     * @param new_score the new score of the item
+     */
+    public void setScore(double new_score) {
+        score = new_score;
     }
 
     /**

@@ -24,12 +24,17 @@ public class Run {
          * Defines the features to characterize the knapsack instances. You can use all of them or only a subset of
          * them.
          */
-        features = new String[]{"NORM_MEAN_WEIGHT", "NORM_MEAN_PROFIT", "NORM_MEAN_PROFIT_WEIGHT", "NORM_MEDIAN_WEIGHT", "NORM_MEDIAN_PROFIT", "NORM_MEDIAN_PROFIT_WEIGHT", "NORM_STD_WEIGHT", "NORM_STD_PROFIT", "NORM_STD_PROFIT_WEIGHT", "NORM_CORRELATION"};
+        features = new String[]{"NORM_MEAN_WEIGHT", "NORM_MEAN_PROFIT", 
+            "NORM_MEAN_PROFIT_WEIGHT", "NORM_MEDIAN_WEIGHT", 
+            "NORM_MEDIAN_PROFIT", "NORM_MEDIAN_PROFIT_WEIGHT", 
+            "NORM_STD_WEIGHT", "NORM_STD_PROFIT", "NORM_STD_PROFIT_WEIGHT", 
+            "NORM_CORRELATION", "MEAN_WEIGHT"};
         /*
          * Defines the heuristics to select the next item. You should let your system to decide which ones to apply. In
          * other words, use all of them as input for your system.
          */
-        heuristics = new String[]{"DEFAULT", "MAX_PROFIT", "MAX_PROFIT/WEIGHT", "MIN_WEIGHT", "MARKOVITZ"};
+        heuristics = new String[]{"DEFAULT", "MAX_PROFIT", "MAX_PROFIT/WEIGHT", 
+            "MIN_WEIGHT", "MARKOVITZ", "SCORE"};
         /*
          * Defines the folder that contains the instances to be considered for this run.
          */
