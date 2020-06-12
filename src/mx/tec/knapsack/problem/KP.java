@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.HashMap;
 import mx.tec.hermes.utils.Files;
 import mx.tec.hermes.utils.Statistical;
 
@@ -22,6 +23,9 @@ public class KP extends Problem {
     private final int capacity;
     private final Knapsack knapsack;
     private final List<Item> items;
+    private final List<Item> discarded;
+    private final ScoreParamParser score_param_parser;
+    private final ScoreHeuristic score_heuristic;
 
     /**
      * Creates an empty instance of <code>KP</code>.
@@ -29,8 +33,18 @@ public class KP extends Problem {
     public KP() {
         capacity = 0;
         items = new ArrayList(0);
+        discarded = new ArrayList(0);
         fileName = "Not available";
         knapsack = new Knapsack(capacity);
+        score_param_parser = new ScoreParamParser();
+        score_heuristic = new ScoreHeuristic(
+                score_param_parser.GetProfitScorer(),
+                score_param_parser.GetWeightScorer(),
+                score_param_parser.GetDensityScorer(),
+                score_param_parser.GetProfitModifier(),
+                score_param_parser.GetWeightModifier(),
+                score_param_parser.GetDensityModifier()
+        );
     }
 
     /**
@@ -46,7 +60,19 @@ public class KP extends Problem {
         string = Files.load(fileName);
         fileTokenizer = new StringTokenizer(string, "\n");
         lineTokenizer = new StringTokenizer(fileTokenizer.nextToken().trim(), ", \t");
-        items = new ArrayList(Integer.parseInt(lineTokenizer.nextToken()));
+        int item_count = Integer.parseInt(lineTokenizer.nextToken());
+        items = new ArrayList(item_count);
+        discarded = new ArrayList(item_count);
+        // Not yet done: get parameters from file
+        score_param_parser = new ScoreParamParser();
+        score_heuristic = new ScoreHeuristic(
+                score_param_parser.GetProfitScorer(),
+                score_param_parser.GetWeightScorer(),
+                score_param_parser.GetDensityScorer(),
+                score_param_parser.GetProfitModifier(),
+                score_param_parser.GetWeightModifier(),
+                score_param_parser.GetDensityModifier()
+        );
         capacity = Integer.parseInt(lineTokenizer.nextToken());
         /*
          * Reads the information about the items.
@@ -72,6 +98,44 @@ public class KP extends Problem {
     public KP(List<Item> items, int capacity) {
         this.capacity = capacity;
         this.items = new ArrayList(items.size());
+        this.discarded = new ArrayList(items.size());
+        this.score_param_parser = new ScoreParamParser();
+        this.score_heuristic = new ScoreHeuristic(
+                this.score_param_parser.GetProfitScorer(),
+                this.score_param_parser.GetWeightScorer(),
+                this.score_param_parser.GetDensityScorer(),
+                this.score_param_parser.GetProfitModifier(),
+                this.score_param_parser.GetWeightModifier(),
+                this.score_param_parser.GetDensityModifier()
+        );
+        for (Item item : items) {
+            this.items.add(item);
+        }
+        fileName = "Not available";
+        knapsack = new Knapsack(capacity);
+    }
+    
+    /**
+     * Creates a new instance of <code>KP</code>,
+     * sending a custom modificarion for <code>ScoreParamParser</code>.
+     *
+     * @param items The items in this problem.
+     * @param capacity The capacity of the knapsack in this problem.
+     * @param config The configuration of the ScoreParamParser.
+     */
+    public KP(List<Item> items, int capacity, HashMap<String, Double> config) {
+        this.capacity = capacity;
+        this.items = new ArrayList(items.size());
+        this.discarded = new ArrayList(items.size());
+        this.score_param_parser = new ScoreParamParser(config);
+        this.score_heuristic = new ScoreHeuristic(
+                this.score_param_parser.GetProfitScorer(),
+                this.score_param_parser.GetWeightScorer(),
+                this.score_param_parser.GetDensityScorer(),
+                this.score_param_parser.GetProfitModifier(),
+                this.score_param_parser.GetWeightModifier(),
+                this.score_param_parser.GetDensityModifier()
+        );
         for (Item item : items) {
             this.items.add(item);
         }
@@ -99,6 +163,22 @@ public class KP extends Problem {
         tmp = new Item[items.size()];
         i = 0;
         for (Item item : items) {
+            tmp[i++] = item;
+        }
+        return tmp;
+    }
+    
+    /**
+     * Returns the items that were discarded.
+     * 
+     * @return The items that were discarded.
+     */
+    public final Item[] getDiscardedItems() {
+        int i;
+        Item[] tmp;
+        tmp = new Item[discarded.size()];
+        i = 0;
+        for (Item item : discarded) {
             tmp[i++] = item;
         }
         return tmp;
@@ -152,6 +232,13 @@ public class KP extends Problem {
         int i;
         double[] x, y;
         switch (feature) {
+            case "MEAN_WEIGHT": 
+                i = 0;
+                x = new double[items.size()];
+                for (Item item : items) {
+                    x[i++] = item.getWeight();
+                }
+                return Statistical.mean(x);
             case "NORM_MEAN_WEIGHT":
                 i = 0;
                 x = new double[items.size()];
@@ -307,6 +394,22 @@ public class KP extends Problem {
         string.append(knapsack.toString());
         return string.toString().trim();
     }
+    
+    /**
+     * Deletes large items from the selection process
+     */
+    private void discardLargeItems() {
+        List<Item> tmp = new ArrayList<>();
+        for (Item item : items) {
+            if (!knapsack.canPack(item)) {
+                tmp.add(item);
+                discarded.add(item);
+            }
+        }
+        for (Item item : tmp) {
+            items.remove(item);
+        }
+    }
 
     /**
      * Returns a suitable item to place in the knapsack.
@@ -318,19 +421,37 @@ public class KP extends Problem {
         double value;
         Item selected;
         selected = null;
+        
+        discardLargeItems();
+        
         switch (heuristic) {
+            case "SCORE":
+                try {
+                score_heuristic.ScoreItems(items, knapsack,
+                        this.getFeature("MEAN_WEIGHT"));
+                } catch (NoSuchFeatureException exception) {
+                    System.err.println(exception);
+                    System.err.println("The system will halt.");
+                    System.exit(1);
+                }
+                double score = -Double.MAX_VALUE;
+                for (Item item : items) {
+                    if (item.getScore() > score) {
+                        selected = item;
+                        score = selected.getScore();
+                    }
+                }
+                return selected;
             case "DEFAULT":
                 for (Item item : items) {
-                    if (knapsack.canPack(item)) {
-                        selected = item;
-                        break;
-                    }
+                    selected = item;
+                    break;
                 }
                 return selected;
             case "MAX_PROFIT":
                 value = -Double.MAX_VALUE;
                 for (Item item : items) {
-                    if (knapsack.canPack(item) && item.getProfit() > value) {
+                    if (item.getProfit() > value) {
                         selected = item;
                         value = selected.getProfit();
                     }
@@ -339,7 +460,7 @@ public class KP extends Problem {
             case "MAX_PROFIT/WEIGHT":
                 value = -Double.MAX_VALUE;
                 for (Item item : items) {
-                    if (knapsack.canPack(item) && item.getProfitPerWeightUnit() > value) {
+                    if (item.getProfitPerWeightUnit() > value) {
                         selected = item;
                         value = selected.getProfitPerWeightUnit();
                     }
@@ -348,7 +469,7 @@ public class KP extends Problem {
             case "MIN_WEIGHT":
                 value = Double.MAX_VALUE;
                 for (Item item : items) {
-                    if (knapsack.canPack(item) && item.getWeight() < value) {
+                    if (item.getWeight() < value) {
                         selected = item;
                         value = selected.getWeight();
                     }
@@ -357,7 +478,7 @@ public class KP extends Problem {
             case "MARKOVITZ":
                 value = -Double.MAX_VALUE;
                 for (Item item : items) {
-                    if (knapsack.canPack(item) && item.getProfit() * item.getWeight() > value) {
+                    if (item.getProfit() * item.getWeight() > value) {
                         selected = item;
                         value = item.getProfit() * item.getWeight();
                     }
