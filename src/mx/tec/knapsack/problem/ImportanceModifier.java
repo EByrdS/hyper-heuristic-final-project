@@ -7,7 +7,8 @@ package mx.tec.knapsack.problem;
 
 /**
  *
- * @author emmanuel byrd
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 1.0
  */
 public class ImportanceModifier {
     private final String type;
