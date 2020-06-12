@@ -5,31 +5,28 @@
  */
 package mx.tec.knapsack.problem;
 
-import java.util.Comparator;
+// import java.util.Comparator; // Needed to the PercentageScorer
 import java.util.HashMap;
 
 /**
  *
- * @author emmanuel byrd
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 1.0
  */
 public class ScoreParamParser {
-    private final PercentageScorer profit_scorer, weight_scorer;
-    private final LinearRegScorer density_scorer;
+    //private final PercentageScorer profit_scorer, weight_scorer;
+    private final AbstractScorer profit_scorer, weight_scorer, density_scorer;
     private final ImportanceModifier profit_score_modifier, 
                 weight_score_modifier, density_score_modifier;
     
     public ScoreParamParser(HashMap<String, Double> config) {
-        weight_scorer = new PercentageScorer(
-                config.get("bot_wg_size"), config.get("bot_wg_score"), 
-                config.get("top_wg_size"), config.get("top_wg_score"),
-                config.get("wg_default"),
-                Comparator.comparing(Item::getWeight)
+        weight_scorer = new LinearRegScorer(
+                config.get("bot_wg_score"), config.get("top_wg_score"),
+                Item::getWeight
         );
-        profit_scorer = new PercentageScorer(
-                config.get("bot_wg_size"), config.get("bot_wg_score"), 
-                config.get("top_wg_size"), config.get("top_wg_score"),
-                config.get("wg_default"),
-                Comparator.comparing(Item::getProfit)
+        profit_scorer = new LinearRegScorer(
+                config.get("bot_pf_score"), config.get("top_pf_score"),
+                Item::getProfit
         );
         density_scorer = new LinearRegScorer(
                 config.get("dens_min"), config.get("dens_max"),
@@ -51,17 +48,13 @@ public class ScoreParamParser {
     
     public ScoreParamParser() {
         HashMap<String, Double> config = DefaultConfig();
-        weight_scorer = new PercentageScorer(
-                config.get("bot_wg_size"), config.get("bot_wg_score"), 
-                config.get("top_wg_size"), config.get("top_wg_score"),
-                config.get("wg_default"),
-                Comparator.comparing(Item::getWeight)
+        weight_scorer = new LinearRegScorer(
+                config.get("bot_wg_score"), config.get("top_wg_score"),
+                Item::getWeight
         );
-        profit_scorer = new PercentageScorer(
-                config.get("bot_wg_size"), config.get("bot_wg_score"), 
-                config.get("top_wg_size"), config.get("top_wg_score"),
-                config.get("wg_default"),
-                Comparator.comparing(Item::getProfit)
+        profit_scorer = new LinearRegScorer(
+                config.get("bot_pf_score"), config.get("top_pf_score"),
+                Item::getProfit
         );
         density_scorer = new LinearRegScorer(
                 config.get("dens_min"),
@@ -88,17 +81,17 @@ public class ScoreParamParser {
     private HashMap DefaultConfig() {
         HashMap<String, Double> config = new HashMap<>();
         /* Weight */
-        config.put("wg_default", 1.0);
-        config.put("bot_wg_size", 0.10);
+        // config.put("wg_default", 1.0);
+        // config.put("bot_wg_size", 0.10);
         config.put("bot_wg_score", 2.0);
-        config.put("top_wg_size", 0.10);
+        // config.put("top_wg_size", 0.10);
         config.put("top_wg_score", 0.0);
         
         /* Profit */
-        config.put("pf_default", 1.0);
-        config.put("bot_pf_size", 0.10);
+        // config.put("pf_default", 1.0);
+        // config.put("bot_pf_size", 0.10);
         config.put("bot_pf_score", 0.0);
-        config.put("top_pf_size", 0.10);
+        // config.put("top_pf_size", 0.10);
         config.put("top_pf_score", 2.0);
         
         /* Density */
@@ -116,24 +109,24 @@ public class ScoreParamParser {
         
         /* Profits Modifier */
         config.put("pf_mod_min", 0.0);
-        config.put("pf_mod_max", 1.1);
+        config.put("pf_mod_max", 0.6);
         
         /* Density Modifier */
-        config.put("dens_mod_min", 1.1);
+        config.put("dens_mod_min", 1.7);
         config.put("dens_mod_max", 0.0);
         
         return config;
     }
     
-    public PercentageScorer GetProfitScorer() {
+    public AbstractScorer GetProfitScorer() {
         return this.profit_scorer;
     }
     
-    public PercentageScorer GetWeightScorer() {
+    public AbstractScorer GetWeightScorer() {
         return this.weight_scorer;
     }
     
-    public LinearRegScorer GetDensityScorer() {
+    public AbstractScorer GetDensityScorer() {
         return this.density_scorer;
     }
     

@@ -10,18 +10,18 @@ import java.util.HashMap;
 
 /**
  *
- * @author emman
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 1.0
  */
 public class ScoreHeuristic {
-    private final PercentageScorer profit_scorer, weight_scorer;
-    private final LinearRegScorer density_scorer;
+    private final AbstractScorer profit_scorer, weight_scorer, density_scorer;
     private final ImportanceModifier profit_score_modifier, 
                 weight_score_modifier, density_score_modifier;
     
     public ScoreHeuristic(
-            PercentageScorer profit_scorer, 
-            PercentageScorer weight_scorer,  
-            LinearRegScorer density_scorer, 
+            AbstractScorer profit_scorer,
+            AbstractScorer weight_scorer,
+            AbstractScorer density_scorer, 
             ImportanceModifier profit_score_modifier, 
             ImportanceModifier weight_score_modifier, 
             ImportanceModifier density_score_modifier) {
@@ -42,7 +42,6 @@ public class ScoreHeuristic {
         
         HashMap<Integer, Double> items_score_tracker = new HashMap<>();
         double heuristic_score, modified_score, prev_score, new_score;
-        
         
         this.weight_scorer.SetScores(items);
         for (Item item : items) {

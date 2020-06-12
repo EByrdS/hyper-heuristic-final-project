@@ -6,14 +6,14 @@
 package mx.tec.knapsack.problem;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  *
- * @author emman
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 1.0
  */
-public class PercentageScorer {
+public class PercentageScorer extends AbstractScorer {
     private final double bot_size;
     private final double bot_score;
     private final double top_size;
@@ -32,6 +32,7 @@ public class PercentageScorer {
         this.comparator = item_comparator;
     }
     
+    @Override
     public void SetScores(List<Item> items) {
         items.sort(this.comparator);
         int length = items.size();

@@ -10,27 +10,29 @@ import java.util.function.Function;
 
 /**
  *
- * @author emmanuel byrd
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 1.0
  */
-public class LinearRegScorer {
+public class LinearRegScorer extends AbstractScorer {
     private final double min_score;
     private final double max_score;
-    private final Function<Item, Double> item_prop_getter;
+    private final Function<Item, Number> item_prop_getter;
     
     public LinearRegScorer (
             double min_score, double max_score,
-            Function<Item, Double> item_prop_getter){
+            Function<Item, Number> item_prop_getter){
         this.min_score = min_score;
         this.max_score = max_score;
         this.item_prop_getter = item_prop_getter;
     }
     
+    @Override
     public void SetScores(List<Item> items) {
         double min_val = Double.MAX_VALUE;
         double max_val = Double.MIN_VALUE;
         
         for (Item item : items) {
-            double density = this.item_prop_getter.apply(item);
+            double density = this.item_prop_getter.apply(item).doubleValue();
             /** 
              * min and max ate checked independently to prevent bugs
              * when there is only one item
@@ -47,7 +49,7 @@ public class LinearRegScorer {
                 (max_val - min_val);
         
         for (Item item : items) {
-            double x = this.item_prop_getter.apply(item) - min_val;
+            double x = this.item_prop_getter.apply(item).doubleValue() - min_val;
             item.setScore(score_inc_per_val * x);
         }
     }

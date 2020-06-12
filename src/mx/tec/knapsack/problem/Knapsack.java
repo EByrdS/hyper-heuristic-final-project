@@ -7,7 +7,8 @@ import java.util.List;
  * Provides the methods to create and use knapsacks for the knapsack problem.
  * <p>
  * @author José Carlos Ortiz Bayliss (jcobayliss@tec.mx)
- * @version 2.0
+ * @author Emmanuel Byrd (a01166339@itesm.mx)
+ * @version 2.1
  */
 public class Knapsack {
 
